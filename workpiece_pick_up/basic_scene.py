@@ -1,63 +1,54 @@
 import mujoco
 import mujoco.viewer
 import time
-import numpy as np # Often useful, though not strictly for this basic scene
+import numpy as np
 
-# 1. Define the MJCF model as an XML string
-# MJCF (MuJoCo XML Format) is how scenes and objects are defined.
-# This is a very simple model: a ground plane and a red box.
-xml_model_string = """
-<mujoco>
-  <worldbody>
-    <body>
-      <geom name="ground" type="plane" size="2 2 0.1" rgba="0.8 0.8 0.8 1"/>
-    </body>
-    <body>
-      <joint name="free_joint" type="free"/> <geom name="box" type="box" size="0.1 0.1 0.1" rgba="1 0 0 1" pos="0 0 1" mass="0.1"/>
-    </body>
-  </worldbody>
-  <actuator>
-      </actuator>
-</mujoco>
-"""
+# 1. Define the ABSOLUTE path to your Google robot model XML file.
+#    Using a raw string (r"...") for Windows paths to avoid errors with backslashes.
+google_robot_xml_path = r"C:\Users\alrfa\OneDrive - Eotvos Lorand Tudomanyegyetem Informatikai Kar\VLAs\mujoco_menagerie\google_robot\scene.xml"
 
-# 2. Load the model from the XML string
+# 2. Load the model from the XML file path
 try:
-    model = mujoco.MjModel.from_xml_string(xml_model_string)
+    print(f"Attempting to load model from: {google_robot_xml_path}")
+    # Use from_xml_path() when loading from a file path
+    model = mujoco.MjModel.from_xml_path(google_robot_xml_path)
     print("Model loaded successfully!")
 except Exception as e:
     print(f"Error loading model: {e}")
+    print("Please ensure the following:")
+    print(f"1. The path '{google_robot_xml_path}' is correct and points to a valid MuJoCo XML/MJCF model file.")
+    print("2. The model file and any associated assets (like meshes, usually in an 'assets' folder nearby or referenced correctly in the XML) are correctly located and accessible.")
     exit()
 
 # 3. Create the data structure for the simulation state
 data = mujoco.MjData(model)
-print("Data structure created.")
+print("Data structure created for the loaded model.")
 
 # 4. Launch the interactive viewer
-# This will open a window and run the simulation.
-# 'launch_passive' is one way to do this; it gives you a handle to the viewer.
-print("Launching viewer...")
+print("Launching viewer with the loaded model...")
 with mujoco.viewer.launch_passive(model, data) as viewer:
-  # Keep the simulation running while the viewer is open
   start_time = time.time()
-  while viewer.is_running() and (time.time() - start_time < 30): # Run for 30 seconds
+  # Limit simulation time for this example
+  simulation_duration_seconds = 300
+  print(f"Simulation will run for approximately {simulation_duration_seconds} seconds or until viewer is closed.")
+
+  while viewer.is_running() and (time.time() - start_time < simulation_duration_seconds):
     step_start_time = time.time()
 
     # Advance the simulation by one step
     mujoco.mj_step(model, data)
 
     # Synchronize the viewer with the new simulation state
-    # This updates what you see in the window.
     viewer.sync()
 
-    # Optional: Regulate the simulation speed (roughly)
-    # MuJoCo's default timestep is 0.002s (500Hz).
-    # viewer.sync() can sometimes slow things down appropriately,
-    # but you can add a small sleep if it runs too fast for viewing.
+    # Optional: Regulate the simulation speed to be closer to real-time
     time_until_next_step = model.opt.timestep - (time.time() - step_start_time)
     if time_until_next_step > 0:
         time.sleep(time_until_next_step)
 
-  print("Simulation time ended or viewer closed.")
+  if not viewer.is_running():
+      print("Viewer was closed.")
+  else:
+      print(f"Simulation time of {simulation_duration_seconds} seconds ended.")
 
 print("Script finished.")
