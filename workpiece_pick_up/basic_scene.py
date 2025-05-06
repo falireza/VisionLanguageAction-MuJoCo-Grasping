@@ -3,9 +3,7 @@ import mujoco.viewer
 import time
 import numpy as np
 
-# 1. Define the ABSOLUTE path to your Google robot model XML file.
-#    Using a raw string (r"...") for Windows paths to avoid errors with backslashes.
-google_robot_xml_path = r"C:\Users\alrfa\OneDrive - Eotvos Lorand Tudomanyegyetem Informatikai Kar\VLAs\mujoco_menagerie\google_robot\scene.xml"
+google_robot_xml_path = r"C:\Users\alrfa\OneDrive - Eotvos Lorand Tudomanyegyetem Informatikai Kar\VLAs\google_robot\scene.xml"
 
 # 2. Load the model from the XML file path
 try:
@@ -25,7 +23,6 @@ data = mujoco.MjData(model)
 print("Data structure created for the loaded model.")
 
 # 4. Launch the interactive viewer
-print("Launching viewer with the loaded model...")
 with mujoco.viewer.launch_passive(model, data) as viewer:
   start_time = time.time()
   # Limit simulation time for this example
